@@ -1,0 +1,1 @@
+It's a music analysis web tool. Its goal is to create a tool that takes a music object as input and returns a list of songs, releases, or artists that are associated with that object through the above relationship song, release, or artist list.
