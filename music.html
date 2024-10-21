@@ -2,14 +2,120 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <link rel="stylesheet" href="music.css">
+    <title>Music Analysis Tool</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            font-weight: bold;
+        }
+        input[type="text"], select {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            margin-bottom: 10px;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .results {
+            margin-top: 20px;
+        }
+        .result-item {
+            border-bottom: 1px solid #ddd;
+            padding: 10px 0;
+        }
+    </style>
 </head>
 <body>
+
     <div class="container">
-        <div class="left">
-            <div class="left-top">
-                <div class="left-top-left">
-                    <div class="left-top-left-top">
+        <h1>Music Analysis Tool</h1>
+        <form id="music-form">
+            <div class="form-group">
+                <label for="music-input">Enter Music Object (Song, Artist, or Album):</label>
+                <input type="text" id="music-input" name="music-input" required>
+            </div>
+            <div class="form-group">
+                <label for="music-type">Select Type:</label>
+                <select id="music-type" name="music-type" required>
+                    <option value="track">Track</option>
+                    <option value="artist">Artist</option>
+                    <option value="album">Album</option>
+                </select>
+            </div>
+            <button type="submit">Search</button>
+        </form>
+
+        <div class="results" id="results"></div>
+    </div>
+
+    <script>
+        document.getElementById('music-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const musicInput = document.getElementById('music-input').value;
+            const musicType = document.getElementById('music-type').value;
+            const resultsDiv = document.getElementById('results');
+
+            resultsDiv.innerHTML = 'Searching...';
+
+            fetch(`/search?q=${encodeURIComponent(musicInput)}&type=${musicType}`)
+                .then(response => response.json())
+                .then(data => {
+                    resultsDiv.innerHTML = '';  // Clear previous results
+                    if (data.error) {
+                        resultsDiv.innerHTML = `<p style="color: red;">Error: ${data.error}</p>`;
+                    } else if (data.length === 0) {
+                        resultsDiv.innerHTML = '<p>No results found.</p>';
+                    } else {
+                        data.forEach(item => {
+                            const div = document.createElement('div');
+                            div.classList.add('result-item');
+
+                            if (musicType === 'track') {
+                                div.innerHTML = `<strong>Track:</strong> ${item.track_name}<br>
+                                                 <strong>Artist:</strong> ${item.artist_name}<br>
+                                                 <strong>Album:</strong> ${item.album_name}`;
+                            } else if (musicType === 'artist') {
+                                div.innerHTML = `<strong>Artist:</strong> ${item.artist_name}<br>
+                                                 <strong>Popularity:</strong> ${item.popularity}<br>
+                                                 <strong>Genres:</strong> ${item.genres.join(', ')}`;
+                            } else if (musicType === 'album') {
+                                div.innerHTML = `<strong>Album:</strong> ${item.album_name}<br>
+                                                 <strong>Artist:</strong> ${item.artist_name}<br>
+                                                 <strong>Release Date:</strong> ${item.release_date}`;
+                            }
+
+                            resultsDiv.appendChild(div);
+                        });
+                    }
+                })
+                .catch(error => {
+                    resultsDiv.innerHTML = `<p style="color: red;">An error occurred: ${error}</p>`;
+                });
+        });
+    </script>
+
+</body>
+</html>
